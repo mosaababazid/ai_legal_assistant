@@ -120,6 +120,25 @@ button:hover {
     color: #555;
 }
 
+.dark-mode-toggle {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    width: auto;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #222;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+}
+
+body.dark-mode .dark-mode-toggle {
+    background-color: #444;
+    color: #fff;
+    border-color: #666;
+}
+
 body.dark-mode {
     background: var(--dark-bg);
     color: var(--dark-text);
@@ -146,3 +165,4 @@ body.dark-mode .progress {
 body.dark-mode .progress-bar {
     background-color: #4ba3ff;
 }
+

@@ -11,8 +11,9 @@ translator = pipeline(
 
 def translate_to_arabic(text: str) -> str:
     """
-    Übersetzt deutschen Text professionell ins Arabische.
-    Nutzt stabiles Übersetzungsmodell, keine LLM-Fantasie.
+    Translates German text into Arabic using a deterministic translation model.
+
+    This intentionally avoids using an LLM to reduce hallucinations.
     """
     translation = translator(text, max_length=600)[0]["translation_text"]
     return translation

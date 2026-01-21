@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Legal Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>AI Legal Assistant</h1>
+
+    <form id="uploadForm">
+        <label for="file">Datei auswählen (PDF oder Bild)</label>
+        <div id="drop-zone" class="drop-zone" role="button" tabindex="0">
+            Datei hierher ziehen oder klicken
+        </div>
+        <input type="file" id="file" name="file" accept=".pdf,image/*" required hidden>
+
+        <label for="language">Antwortsprache:</label>
+        <select id="language" name="language" required>
+            <option value="de">Deutsch</option>
+            <option value="ar">Arabisch</option>
+        </select>
+
+        <label for="mode">Modus:</label>
+        <select id="mode" name="mode" required>
+            <option value="summary">Nur Zusammenfassung</option>
+            <option value="legal_advice">Zusammenfassung + rechtliche Einordnung</option>
+        </select>
+
+        <button type="submit">Verarbeiten</button>
+    </form>
+
+    <div id="progress" class="progress" aria-label="Upload progress">
+        <div id="progress-bar" class="progress-bar">0%</div>
+    </div>
+
+    <div id="loading" class="loading">Wird verarbeitet...</div>
+
+    <div id="result" style="display:none;">
+        <div class="result-card">
+            <div class="section-title">Originaltext</div>
+            <p id="original_text"></p>
+
+            <div class="section-title">Zusammenfassung</div>
+            <p id="summary"></p>
+
+            <div class="section-title">Empfehlung</div>
+            <p id="legal_recommendation"></p>
+
+            <div class="section-title">Genutzte Paragraphen</div>
+            <ul id="used_paragraphs" style="padding-left: 1em;"></ul>
+
+        </div>
+    </div>
+</div>
+
+<script src="./script.js"></script>
+
+</body>
+</html>
+

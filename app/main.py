@@ -1,23 +1,33 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import extract_and_summarize
+from app.api import routes
+import logging
+
+
+def configure_logging() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+    )
+
 
 # Create FastAPI application instance
+configure_logging()
 app = FastAPI()
 
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include only available routers
-app.include_router(extract_and_summarize.router)
+# Include API routers
+app.include_router(routes.router)
 
-# Health check endpoint
+
 @app.get("/")
-async def root():
+async def root() -> dict:
     return {"message": "API is running correctly."}

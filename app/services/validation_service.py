@@ -21,8 +21,10 @@ CONTEXTUAL_FLAGS = [
 
 def validate_output(text: str) -> bool:
     """
-    Validiert juristischen Text auf riskante Aussagen.
-    Gibt False zurück bei unzulässigen Formulierungen oder missverständlichen Rechtsbehauptungen.
+    Validates generated legal text to reduce regulatory risk (RDG) and overconfident claims.
+
+    Returns False if the text contains prohibited phrasing or patterns that can be interpreted
+    as binding legal advice.
     """
     text_lower = text.lower()
     for phrase in BANNED_PHRASES:
@@ -37,8 +39,9 @@ def validate_output(text: str) -> bool:
 
 def soften_risky_phrases(text: str) -> str:
     """
-    Entschärft kritische Aussagen automatisch, ohne sie komplett zu entfernen.
-    Beispiel: 'kann klagen' → 'kann rechtlich prüfen lassen'
+    Softens risky phrasing without removing the content entirely.
+
+    Example: "kann klagen" -> "könnte rechtlich prüfen lassen"
     """
     replacements = [
         (r"kann.*?klage.*?einreichen", "sollte rechtlichen Rat einholen"),

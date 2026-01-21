@@ -1,14 +1,15 @@
 fastapi
 uvicorn
-aiofiles
 python-multipart
 pillow
 numpy
 requests
+beautifulsoup4
 PyMuPDF
 easyocr
-sentence-transformers
-# LLaMA-basierter Index (lokal)
+# Local LLaMA-based index
 llama-index>=0.10.0
 llama-index-llms-ollama
 llama-index-embeddings-ollama
+transformers
+torch

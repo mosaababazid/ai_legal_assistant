@@ -5,11 +5,13 @@ import io
 
 def extract_text_from_image(file_bytes: bytes) -> str:
     """
-    Verbessertes OCR-Modul mit Bildoptimierung und easyocr.
-    - Graustufen
-    - Hochskalierung
-    - Schärfen
-    - paragraph=True
+    Extracts text from an image using EasyOCR.
+
+    The image is preprocessed to improve OCR quality:
+    - Grayscale conversion
+    - Upscaling
+    - Sharpening
+    - paragraph=True to favor contiguous text blocks
     """
     image = Image.open(io.BytesIO(file_bytes)).convert('L')
     image = image.resize((int(image.width * 1.5), int(image.height * 1.5)))

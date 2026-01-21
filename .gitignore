@@ -1,5 +1,96 @@
-venv/
+# ------------------------------------------------------------------------------
+# Security / Secrets
+# ------------------------------------------------------------------------------
+
+# Environment variable files (never commit secrets)
+.env
+.env.*.local
+
+# Generic secrets / keys
+secrets.json
+*.key
+*.pem
+
+
+# ------------------------------------------------------------------------------
+# Python / FastAPI backend
+# ------------------------------------------------------------------------------
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-index_store/
-deutsche_gesetze/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local logs and temp output
+logs/
+temp/
+tmp/
+
+
+# ------------------------------------------------------------------------------
+# Node / React frontend
+# ------------------------------------------------------------------------------
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Package managers / caches / logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+
+# ------------------------------------------------------------------------------
+# RAG / Project-specific heavy artifacts
+# ------------------------------------------------------------------------------
+
+# Persisted vector index (rebuild via `scripts/build_index.py`)
+data/index_store/
+
+# Downloaded German law corpus (re-download via `scripts/law_scraper.py`)
+data/raw_laws/
+
+# Uploaded/scanned documents (privacy-sensitive user data)
+scanned_docs/
+
+
+# ------------------------------------------------------------------------------
+# IDE / Editor / OS cruft
+# ------------------------------------------------------------------------------
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# ------------------------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------------------------
+
+# Python packaging artifacts
+build/
+dist/
+*.egg-info/
