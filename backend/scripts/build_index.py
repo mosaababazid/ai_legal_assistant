@@ -1,4 +1,3 @@
-# Build RAG index from raw_laws; same logic runs on backend startup
 from pathlib import Path
 import logging
 import sys

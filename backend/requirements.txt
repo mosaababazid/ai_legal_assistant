@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+python-dotenv
 python-multipart
 pillow
 numpy
@@ -7,10 +8,8 @@ requests
 beautifulsoup4
 PyMuPDF
 easyocr
-# Local LLaMA-based index
 llama-index>=0.10.0
-llama-index-llms-ollama
-llama-index-embeddings-ollama
+llama-index-llms-groq
 llama-index-embeddings-huggingface
 llama-index-retrievers-bm25
 transformers

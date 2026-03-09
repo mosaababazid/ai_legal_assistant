@@ -1,4 +1,7 @@
-# CORS open for local dev; index built on startup if missing (blocking, ~1–2 min first run)
+from dotenv import load_dotenv
+load_dotenv()
+
+# Index build on startup if missing (blocking, ~1–2 min first run)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import routes
@@ -17,7 +20,6 @@ def configure_logging() -> None:
 
 
 def _maybe_build_index() -> None:
-    """Build RAG index once if raw_laws has .txt/.xml; else summary-only until next run"""
     if index_exists():
         return
     logger.info("Gesetzesindex fehlt – baue Index jetzt (einmalig, kann 1–2 Min. dauern) …")
@@ -33,9 +35,8 @@ app = FastAPI()
 
 @app.on_event("startup")
 def on_startup() -> None:
-    _maybe_build_index()
+    _maybe_build_index()  # one-off when index_store empty
 
-# Allow all for dev; tighten in prod
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -2,29 +2,28 @@
 
 AI Legal Assistant is an AI tool designed to **help Arab refugees and non-German speakers simplify and understand complex German bureaucratic documents (Amtsdeutsch)**.
 
-It reduces misunderstandings by extracting text from letters, producing a concise German summary, and optionally translating the result into Arabic. For legal-oriented questions, it uses **Retrieval-Augmented Generation (RAG)** grounded in a local corpus of German laws to avoid "made up" answers.
+It extracts text from letters, summarizes it in plain language, and offers RAG-based legal orientation from a local corpus of German laws. The user chooses the **output language** (German or Arabic); the LLM answers directly in that language.
 
 ## Core Logic & Language Processing
 
-The AI Assistant performs all core analysis and summarization in **German** to ensure maximum legal accuracy. Legal documents, bureaucratic language (Amtsdeutsch), and German law texts require precise interpretation that is best achieved when the AI processes content in its original language. The system extracts text from PDFs or images, cleans and summarizes it in German, and then applies RAG-based legal analysis using a German law corpus.
-
-**Arabic translation** is provided as an optional feature to help Arab refugees and newcomers bridge the language gap. After the German analysis is complete, users can choose to have the summary or legal recommendation translated into Arabic, making the information accessible to those who are still learning German or need immediate comprehension in their native language.
+The system extracts text from PDFs or images, cleans it, and either summarizes it or runs RAG over the law corpus. Analysis is grounded in the retrieved passages. The user selects output language (Deutsch or Arabisch); summarization and legal advice are produced in that language by the LLM (no separate translation step for those flows).
 
 ## Tech Stack
 
 - **Backend**: Python, FastAPI, Uvicorn
-- **RAG**: LlamaIndex, Ollama (LLM). Embedding and LLM models are configurable in `backend/app/core/config.py`—you can choose whatever models suit you; you're not required to use the same ones as this project.
+- **LLM**: Default is Groq API; you can use **any** LlamaIndex-compatible LLM (e.g. Ollama for local). Model name and provider are in `backend/app/core/config.py`; swap the LLM client in `rag_service.py` and `summarization_service.py` to use another provider.
+- **RAG**: LlamaIndex, HuggingFace embeddings, hybrid retrieval (vector + BM25), persisted index in `backend/data/index_store/`.
 - **OCR**: EasyOCR, Pillow, NumPy
-- **PDF parsing**: PyMuPDF
-- **Translation**: Transformers + Torch (German -> Arabic)
-- **Frontend**: **Next.js 15** (App Router, React 19, Tailwind) in `web/` (frontend)
+- **PDF**: PyMuPDF
+- **Translation**: Transformers (Helsinki opus-mt-de-ar) for optional DEtoAR when needed.
+- **Frontend**: Next.js 15 (App Router, React 19, Tailwind) in `web/`
 
 ## Architecture (RAG Pipeline)
 
-- **Ingestion**: German law texts are scraped (optional) and stored as plain `.txt` files in `backend/data/raw_laws/`.
-- **Embedding**: `backend/scripts/build_index.py` creates a vector index and stores it in `backend/data/index_store/`.
-- **Retrieval**: At query time, LlamaIndex retrieves the most similar law passages from the persisted index.
-- **Generation**: An Ollama LLM generates a German response constrained by a strict prompt to only use retrieved passages.
+- **Ingestion**: Law texts (`.txt` / `.xml`) in `backend/data/raw_laws/`.
+- **Embedding**: `backend/scripts/build_index.py` builds the vector index into `backend/data/index_store/`.
+- **Retrieval**: Hybrid (vector + BM25) over the persisted index.
+- **Generation**: LLM (default Groq) with a strict prompt; answers only from retrieved context and in the user-chosen language.
 
 ## Mission (Social Impact)
 
@@ -55,9 +54,8 @@ See **`backend/README.md`** and **`web/README.md`** for per-project setup and ru
 
 ### Prerequisites
 
-- Python 3.11+ (for backend)
-- Node.js 18+ (for frontend)
-- [Ollama](https://ollama.com) installed and running. Pull whatever LLM you prefer (e.g. `ollama pull llama3.2:3b`). Embedding model is set in `backend/app/core/config.py` (default: HuggingFace multilingual); you can change it to suit your setup.
+- Python 3.11+ (backend), Node.js 18+ (frontend)
+- **LLM**: Default is Groq — get a key at [console.groq.com](https://console.groq.com) and set `GROQ_API_KEY` in `backend/.env`. You can instead use a local LLM (e.g. [Ollama](https://ollama.com)) or another API by changing the model in `backend/app/core/config.py` and the LLM client in the backend services.
 
 ### Backend
 
@@ -65,10 +63,12 @@ From the **`backend/`** directory:
 
 ```bash
 cd backend
+cp .env.example .env   # for Groq: set GROQ_API_KEY
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1   # Windows PowerShell
 pip install -r requirements.txt
-# Optional: python scripts/law_scraper.py && python scripts/build_index.py
+# Optional: build RAG index from data/raw_laws (required for legal-advice mode)
+python scripts/build_index.py
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -95,4 +95,4 @@ Open **http://localhost:3000/** and ensure the backend is running at `http://127
    - **Nur Zusammenfassung**: Extracts and summarizes the document text.
    - **Zusammenfassung + rechtliche Einordnung**: Provides summary plus RAG-based legal analysis using the German law corpus.
 
-The system will extract text, clean it, summarize it in German, and optionally translate the result to Arabic if requested. Legal analysis mode requires the vector index to be built (step 4 in Setup).
+Output is in the selected language (German or Arabic). Legal-advice mode requires the vector index (`python scripts/build_index.py` from `backend/`).

@@ -1,4 +1,3 @@
-# PDF/image to extract to summary or summary + RAG, DE or AR output
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 
@@ -6,7 +5,6 @@ from app.core.config import IS_PRODUCTION
 from app.services.ocr_service import extract_text_from_image
 from app.services.pdf_service import extract_text_from_pdf
 from app.services.summarization_service import summarize_text
-from app.services.translation_service import translate_to_arabic
 from app.services.rag_service import handle_legal_query_with_index, IndexNotFoundError
 from app.services.validation_service import validate_output, soften_risky_phrases
 from app.utils.text_cleaner import clean_extracted_text
@@ -15,8 +13,7 @@ import logging
 
 
 router = APIRouter()
-# We're not giving legal advice; disclaimer shown in UI (RDG)
-DISCLAIMER = "Diese Einschätzung ersetzt keine anwaltliche Beratung (§ 1 RDG)."
+DISCLAIMER = "Diese Einschätzung ersetzt keine anwaltliche Beratung (§ 1 RDG)."  # RDG compliance
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +63,10 @@ async def extract_and_summarize(
             )
 
         if mode == "summary":
-            legal_summary_de = summarize_text(extracted_text)
+            target_lang = "Deutsch" if language == "de" else "Arabisch"
+            summary = summarize_text(extracted_text, target_language=target_lang)
 
-            if len(legal_summary_de.split()) < 5:
+            if len(summary.split()) < 5:
                 return _success(
                     {
                         "original_text": extracted_text,
@@ -76,12 +74,6 @@ async def extract_and_summarize(
                         "disclaimer": DISCLAIMER,
                     }
                 )
-
-            summary = (
-                translate_to_arabic(legal_summary_de)
-                if language == "ar"
-                else legal_summary_de
-            )
 
             return _success(
                 {
@@ -92,10 +84,10 @@ async def extract_and_summarize(
             )
 
         if mode == "legal_advice":
-            # RAG is CPU-bound; offload so event loop stays responsive
             try:
+                target_lang = "Deutsch" if language == "de" else "Arabisch"
                 result = await asyncio.to_thread(
-                    handle_legal_query_with_index, extracted_text
+                    handle_legal_query_with_index, extracted_text, target_lang
                 )
             except TimeoutError:
                 raise HTTPException(
@@ -122,8 +114,7 @@ async def extract_and_summarize(
             recommendation_text = soften_risky_phrases(
                 result.get("recommendation") or ""
             )
-            # Block if output looks like binding legal advice (RDG guard)
-            if not validate_output(recommendation_text or ""):
+            if not validate_output(recommendation_text or ""):  # RDG guard
                 raise HTTPException(
                     status_code=500,
                     detail=(
@@ -131,21 +122,6 @@ async def extract_and_summarize(
                         "(RDG-Schutz)."
                     ),
                 )
-
-            if language == "ar":
-                # Skip leading citation-only line so it is not translated (e.g. "§ 1" -> "الفصل الأول")
-                t = recommendation_text.strip()
-                if t:
-                    first_line = t.split("\n")[0].strip()
-                    if (
-                        first_line
-                        and len(first_line) < 30
-                        and ("§" in first_line or first_line.startswith("Absatz"))
-                    ):
-                        rest = "\n".join(t.split("\n")[1:]).strip()
-                        if rest:
-                            recommendation_text = rest
-                recommendation_text = translate_to_arabic(recommendation_text)
 
             return _success(
                 {

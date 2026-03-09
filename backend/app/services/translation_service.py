@@ -1,17 +1,15 @@
-# DE to AR via Helsinki opus-mt; anti-repetition params to avoid "هيّا" loops / degeneration.
-# Model max length 512 tokens; we chunk long text. Generation "brakes" prevent repetition loops.
+# Optional DEtoAR; not used in main flow (LLM outputs in target language). Kept for other use.
 from transformers import pipeline
 import torch
 
-# Chunk size in chars so token count stays under 512 (~4 chars/token for German)
-MAX_CHARS_PER_CHUNK = 1200
-# Cap output length so runaway generation stops quickly
+MAX_CHARS_PER_CHUNK = 500  # opus-mt-de-ar max 512 tokens; chunk to avoid overflow
 MAX_OUTPUT_LENGTH = 256
 
 GEN_OPTS = {
-    "max_length": min(512, MAX_OUTPUT_LENGTH),
+    "max_length": MAX_OUTPUT_LENGTH,
     "repetition_penalty": 1.2,
     "no_repeat_ngram_size": 3,
+    "truncation": True,
 }
 
 translator = pipeline(
@@ -33,8 +31,7 @@ def translate_to_arabic(text: str) -> str:
     text = text.strip()
     if len(text) <= MAX_CHARS_PER_CHUNK:
         return _translate_chunk(text)
-    # Chunk and translate each part to stay under model limit
-    parts = []
+    parts = []  # long text: split at sentence boundary, translate, rejoin
     start = 0
     while start < len(text):
         chunk = text[start : start + MAX_CHARS_PER_CHUNK]

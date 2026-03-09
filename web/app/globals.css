@@ -58,6 +58,11 @@
   }
 }
 
+.font-arabic {
+  letter-spacing: 0 !important;
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
 .bg-grid-arabic {
   position: relative;
   background-color: var(--bg);
@@ -163,12 +168,16 @@
   .dark .dropzone-box {
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
-  .dropzone-box:hover,
+  .dropzone-box:not(.drag-active):not(.has-file):hover {
+    box-shadow:
+      0 0 0 1px rgba(13, 148, 136, 0.2),
+      0 4px 20px -4px rgba(13, 148, 136, 0.18),
+      0 8px 32px -8px rgba(13, 148, 136, 0.1);
+  }
   .dropzone-box.drag-active,
   .dropzone-box.has-file {
     box-shadow: 0 0 0 2px var(--accent), 0 16px 48px -16px rgba(13, 148, 136, 0.4);
   }
-  .dark .dropzone-box:hover,
   .dark .dropzone-box.drag-active,
   .dark .dropzone-box.has-file {
     box-shadow: 0 0 0 2px var(--accent), 0 16px 48px -16px rgba(45, 212, 191, 0.3);

@@ -1,4 +1,3 @@
-# PDF text extraction; one string per doc (pages joined with space).
 import fitz
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:

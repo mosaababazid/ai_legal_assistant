@@ -1,11 +1,10 @@
-# RAG index from data/raw_laws (.txt + .xml). Uses embedding model from config;
-# you can change EMBEDDING_MODEL_NAME in app/core/config.py to any model that suits you.
 from __future__ import annotations
 
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+# Builds vector index from data/raw_laws (.txt, .xml); persists to data/index_store
 from llama_index.core import Document, Settings, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -22,14 +21,12 @@ REQUIRED_INDEX_FILES = ["docstore.json", "index_store.json"]
 
 
 def index_exists() -> bool:
-    """True iff index_store has the two files LlamaIndex needs to load"""
     if not DATA_INDEX_DIR.exists():
         return False
     return all((DATA_INDEX_DIR / name).exists() for name in REQUIRED_INDEX_FILES)
 
 
 def _text_from_xml(path: Path) -> str:
-    """Flatten gesetze-im-internet.de XML to plain text (elem.text + elem.tail)"""
     tree = ET.parse(path)
     root = tree.getroot()
     parts = []
@@ -42,7 +39,6 @@ def _text_from_xml(path: Path) -> str:
 
 
 def _load_raw_law_documents() -> list[Document]:
-    """Glob raw_laws for .txt/.xml; return Document list (source filename in metadata)."""
     documents: list[Document] = []
     DATA_RAW_LAWS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -66,7 +62,6 @@ def _load_raw_law_documents() -> list[Document]:
 
 
 def build_legal_index() -> bool:
-    """Persist vector index to index_store; returns True if built, False if no docs in raw_laws"""
     DATA_RAW_LAWS_DIR.mkdir(parents=True, exist_ok=True)
     DATA_INDEX_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -78,7 +73,6 @@ def build_legal_index() -> bool:
         )
         return False
 
-    # Chunking: 512 tokens, 100 overlap so legal context is not cut mid-sentence.
     Settings.text_splitter = SentenceSplitter(
         chunk_size=512,
         chunk_overlap=100,

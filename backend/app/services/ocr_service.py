@@ -1,4 +1,3 @@
-# German OCR via EasyOCR; grayscale + upscale + sharpen before read.
 import easyocr
 import numpy as np
 from PIL import Image, ImageFilter

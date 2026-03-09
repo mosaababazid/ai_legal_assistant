@@ -1,8 +1,7 @@
-# RAG over persisted index. Embedding and LLM come from config; you can choose
-# models that suit you (see app/core/config.py). Uses hybrid retrieval + strict QA prompt.
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from llama_index.core import (
@@ -16,7 +15,7 @@ from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_index.llms.ollama import Ollama
+from llama_index.llms.groq import Groq
 
 from app.core.config import (
     DATA_INDEX_DIR,
@@ -28,29 +27,31 @@ from app.core.config import (
 
 logger = logging.getLogger(__name__)
 
-_query_engine: Any | None = None
+_query_engine: Any | None = None  # singleton; built once on first legal_advice request
 
-STRICT_QA_PROMPT = PromptTemplate(
-    "Du bist ein präziser deutscher Rechtsassistent. Deine Aufgabe ist es, dem Nutzer basierend auf seinem Brief und dem Gesetzestext klare Anweisungen zu geben.\n\n"
-    "STRIKTE REGELN:\n"
-    "1. Nutze AUSSCHLIESSLICH den angegebenen Kontext. Erfinde absolut nichts hinzu!\n"
-    "2. Zahlen, Beträge (z.B. Euro) und Daten (z.B. Fristen) müssen EXAKT aus dem Brief übernommen werden.\n"
-    "3. Sprich den Leser direkt mit 'Sie' an (z.B. 'Sie müssen...', 'Ihre Frist ist...').\n"
-    "4. Keine Meta-Sätze! Beginne NICHT mit 'Dieser Brief besagt...' oder 'In dem Schreiben geht es um...'. Antworte sofort mit den Fakten.\n"
-    "5. Fasse dich extrem kurz: Maximal 2 bis 4 einfache Sätze auf Deutsch. Keine langen Gesetzestexte kopieren.\n"
-    "6. Wenn der Kontext nicht zum Brief passt, antworte NUR mit: 'Keine relevanten Paragraphen gefunden.'\n\n"
-    "Gesetzlicher Kontext:\n{context_str}\n\n"
-    "Brief/Text des Nutzers:\n{query_str}\n\n"
-    "Klare und direkte Antwort (nur auf Deutsch):"
+LEGAL_CONSULTANT_PROMPT = PromptTemplate(
+    "Du bist ein Rechtsberater. Du bekommst einen BRIEF und KONTEXT mit Gesetzestexten.\n\n"
+    "PFLICHT: Die erste Zeile der Nutzeranfrage legt die AUSGABESPACHE fest (Deutsch oder Arabisch). "
+    "Du MUSST die GESAMTE Beratung in genau dieser Sprache schreiben. Keine Ausnahme, keine Begründung — "
+    "wenn dort „Arabisch“ steht, antworte von der ersten bis zur letzten Zeile auf Arabisch.\n\n"
+    "STRUKTUR DEINER ANTWORT (in der geforderten Sprache):\n"
+    "1. KURZ ZUSAMMENGEFASST: Was steht im Brief? (Betreff, Absender, Kernaussage in 2–3 Sätzen.)\n"
+    "2. RECHTSGRUNDLAGE: Welcher Paragraph aus dem KONTEXT passt? Nenne die genaue Norm (z.B. § 199a SGB V). Nur aus dem KONTEXT.\n"
+    "3. BETRÄGE UND FRISTEN: Exakt die genannten Beträge und Fristen.\n"
+    "4. WAS SOLL DER NUTZER TUN? Konkrete Handlungsempfehlung.\n"
+    "5. RECHTE: Seine Rechte in dieser Sache.\n"
+    "6. KONSEQUENZEN: Was passiert bei Fristversäumnis oder Ignorieren der Forderung?\n\n"
+    "Keine Erfindungen — nur aus Brief und KONTEXT.\n\n"
+    "KONTEXT (Gesetze):\n{context_str}\n\n"
+    "NUTZERANFRAGE (erste Zeile = Ausgabesprache) und BRIEF:\n{query_str}\n\n"
+    "Deine Beratung (vollständig in der geforderten Sprache):"
 )
-
 class IndexNotFoundError(RuntimeError):
-    """Raised when index_store is missing or missing docstore.json/index_store.json."""
+    pass
 
 
 class _HybridRetriever(BaseRetriever):
-    """Combines vector and BM25 retrievers with weighted scores (no EnsembleRetriever dependency)."""
-
+    """Vector + BM25; score merge, dedup by node_id, top_k by combined score."""
     def __init__(
         self,
         vector_retriever: BaseRetriever,
@@ -86,7 +87,6 @@ class _HybridRetriever(BaseRetriever):
 
 
 def _get_query_engine() -> Any:
-    """Load index once; build hybrid retriever (vector + BM25) and query engine with strict prompt."""
     global _query_engine
     if _query_engine is not None:
         return _query_engine
@@ -137,10 +137,17 @@ def _get_query_engine() -> Any:
     except Exception as e:
         logger.warning("BM25/hybrid not available, using vector only: %s", e)
 
-    llm = Ollama(model=LLM_MODEL_NAME, request_timeout=RAG_REQUEST_TIMEOUT_SECONDS)
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY environment variable is required for the LLM.")
+    llm = Groq(
+        model=LLM_MODEL_NAME,
+        api_key=api_key,
+        request_timeout=RAG_REQUEST_TIMEOUT_SECONDS,
+    )
     response_synthesizer = get_response_synthesizer(
         llm=llm,
-        text_qa_template=STRICT_QA_PROMPT,
+        text_qa_template=LEGAL_CONSULTANT_PROMPT,
     )
     _query_engine = RetrieverQueryEngine(
         retriever=retriever,
@@ -156,9 +163,14 @@ def _get_query_engine() -> Any:
     return _query_engine
 
 
-def handle_legal_query_with_index(text: str) -> dict:
-    """Query index with problem text; return recommendation (DE) + used_paragraphs (source chunks)."""
-    response = _get_query_engine().query(text)
+def handle_legal_query_with_index(text: str, target_language: str = "Deutsch") -> dict:
+    # Engine has no template_vars; language instruction must be in query text
+    if target_language == "Arabisch":
+        prefix = "AUSGABESPACHE: NUR ARABISCH. Der Nutzer hat Arabisch gewählt. Deine gesamte Antwort MUSS auf Arabisch sein.\n\nBrief:\n"
+    else:
+        prefix = "AUSGABESPACHE: NUR DEUTSCH.\n\nBrief:\n"
+    query_with_lang = prefix + text
+    response = _get_query_engine().query(query_with_lang)
     recommendation = str(response) if response is not None else ""
     nodes = getattr(response, "source_nodes", None) or []
     used_paragraphs = []

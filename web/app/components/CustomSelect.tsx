@@ -20,12 +20,14 @@ export function CustomSelect({
   options,
   onChange,
   isRtl = false,
+  useArabicFont = false,
   id,
   "aria-label": ariaLabel,
   className = "",
 }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const didSelectRef = useRef(false);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -38,7 +40,15 @@ export function CustomSelect({
   }, [open]);
 
   const selected = options.find((o) => o.value === value) ?? options[0];
-  const fontClass = isRtl ? "font-arabic" : "";
+  const fontClass = isRtl || useArabicFont ? "font-arabic" : "";
+
+  const handleTriggerClick = () => {
+    if (didSelectRef.current) {
+      didSelectRef.current = false;
+      return;
+    }
+    setOpen((o) => !o);
+  };
 
   return (
     <div ref={ref} className={`relative ${className}`}>
@@ -49,14 +59,14 @@ export function CustomSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-selected={undefined}
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleTriggerClick}
         className={`
-          w-full rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)]
-          text-[var(--text)] px-4 py-3 text-sm shadow-[var(--card-shadow)]
-          focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)] outline-none transition
+          w-full border border-[var(--card-border)] bg-[var(--card-bg)]
+          text-[var(--text)] px-4 py-3 text-sm
+          outline-none transition focus:outline-none
           flex items-center justify-between gap-2
+          ${open ? "rounded-t-xl border-b-0" : "rounded-xl shadow-[var(--card-shadow)]"}
           ${isRtl ? "flex-row-reverse text-right" : "text-left"}
-          ${open ? "ring-2 ring-[var(--accent)]/30 border-[var(--accent)]" : ""}
           ${fontClass}
         `}
       >
@@ -76,22 +86,22 @@ export function CustomSelect({
           role="listbox"
           aria-activedescendant={value}
           className={`
-            absolute z-50 mt-2 left-0 right-0 rounded-xl
-            border border-[var(--card-border)] bg-[var(--card-bg)]
+            absolute z-50 top-full left-0 right-0 rounded-b-xl
+            border border-[var(--card-border)] border-t-0 bg-[var(--card-bg)]
             py-1 max-h-60 overflow-auto
-            animate-fade-in
+            animate-fade-in shadow-[var(--card-shadow)]
             ${fontClass}
           `}
-          style={{
-            boxShadow: "0 12px 40px -8px rgba(0,0,0,0.15), 0 0 0 1px var(--card-border)",
-          }}
         >
           {options.map((opt) => (
             <li
               key={opt.value}
               role="option"
               aria-selected={opt.value === value}
-              onClick={() => {
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                didSelectRef.current = true;
                 onChange(opt.value);
                 setOpen(false);
               }}

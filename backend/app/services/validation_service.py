@@ -1,6 +1,6 @@
-# Block/soften output that could read as binding legal advice (RDG)
 import re
 
+# RDG: block/soften output that could read as binding legal advice
 BANNED_PHRASES = [
     "garantiert",
     "zweifelsfrei",

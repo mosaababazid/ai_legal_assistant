@@ -117,7 +117,7 @@ export default function Home() {
       <header className="relative z-10 flex justify-between items-center px-5 sm:px-8 lg:px-12 py-5 sm:py-6">
         <a
           href="/"
-          className={`${isRtl ? "font-arabic" : "font-display"} text-lg sm:text-xl font-semibold tracking-tight text-[var(--text)] hover:opacity-80 transition-opacity`}
+          className={`${isRtl ? "font-arabic" : "font-display tracking-tight"} text-lg sm:text-xl font-semibold text-[var(--text)] hover:opacity-80 transition-opacity`}
         >
           {t.siteName}
         </a>
@@ -159,7 +159,7 @@ export default function Home() {
       <main className="relative z-10 max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pb-20 sm:pb-28">
         <div className="grid lg:grid-cols-[1fr,1.15fr] gap-12 lg:gap-20 items-start pt-6 sm:pt-10 lg:pt-16">
           <div className="animate-fade-up" style={{ animationDelay: "0ms" }}>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--accent)] mb-4">
+            <p className={`text-xs font-medium uppercase text-[var(--accent)] mb-4 ${isRtl ? "font-arabic" : "tracking-[0.18em]"}`}>
               {t.tagline}
             </p>
             <h1 className={`${isRtl ? "font-arabic leading-[2.15]" : "font-display leading-[1.12]"} text-3xl sm:text-4xl lg:text-5xl font-bold max-w-lg text-[var(--text)]`}>
@@ -183,7 +183,7 @@ export default function Home() {
                   ${isRtl ? "font-arabic" : ""}
                   ${drag ? "scale-[1.02] border-[var(--accent)] bg-[var(--dropzone-active)] drag-active" : ""}
                   ${file && !drag ? "border-[var(--accent)] bg-[var(--dropzone-active)] has-file" : ""}
-                  ${!file && !drag ? "border-[var(--dropzone-border)] bg-[var(--dropzone-bg)] hover:border-[var(--accent)]/60 hover:bg-[var(--dropzone-hover)]" : ""}
+                  ${!file && !drag ? "border-[var(--dropzone-border)] bg-[var(--dropzone-bg)] hover:border-[var(--accent)]/30" : ""}
                 `}
               >
                 <input
