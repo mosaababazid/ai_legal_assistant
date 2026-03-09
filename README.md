@@ -6,12 +6,12 @@ It extracts text from letters, summarizes it in plain language, and offers RAG-b
 
 ### Frontend
 
-Screenshots of the web interface (360×245px):
+Screenshots of the web interface:
 
-| Light, German | Light, Arabic |
-|---------------|---------------|
-| <img src="docs/screenshots/White-GE.png" width="360" height="245" alt="Light, German" /> | <img src="docs/screenshots/White-AR.png" width="360" height="245" alt="Light, Arabic" /> |
+| Dark, German | Dark, Arabic |
+|--------------|---------------|
 | <img src="docs/screenshots/Dark-GE.png" width="360" height="245" alt="Dark, German" /> | <img src="docs/screenshots/Dark-AR.png" width="360" height="245" alt="Dark, Arabic" /> |
+| <img src="docs/screenshots/White-GE.png" width="360" height="245" alt="Light, German" /> | <img src="docs/screenshots/White-AR.png" width="360" height="245" alt="Light, Arabic" /> |
 
 ## Core Logic & Language Processing
 
