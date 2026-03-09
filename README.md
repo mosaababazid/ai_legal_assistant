@@ -4,6 +4,15 @@ AI Legal Assistant is an AI tool designed to **help Arab refugees and non-German
 
 It extracts text from letters, summarizes it in plain language, and offers RAG-based legal orientation from a local corpus of German laws. The user chooses the **output language** (German or Arabic); the LLM answers directly in that language.
 
+### Frontend
+
+Screenshots of the web interface (360×245px):
+
+| Light, German | Light, Arabic |
+|---------------|---------------|
+| <img src="docs/screenshots/White-GE.png" width="360" height="245" alt="Light, German" /> | <img src="docs/screenshots/White-AR.png" width="360" height="245" alt="Light, Arabic" /> |
+| <img src="docs/screenshots/Dark-GE.png" width="360" height="245" alt="Dark, German" /> | <img src="docs/screenshots/Dark-AR.png" width="360" height="245" alt="Dark, Arabic" /> |
+
 ## Core Logic & Language Processing
 
 The system extracts text from PDFs or images, cleans it, and either summarizes it or runs RAG over the law corpus. Analysis is grounded in the retrieved passages. The user selects output language (Deutsch or Arabisch); summarization and legal advice are produced in that language by the LLM (no separate translation step for those flows).
