@@ -39,16 +39,22 @@ tmp/
 
 
 # ------------------------------------------------------------------------------
-# Node / React frontend
+# Node / Next.js frontend
 # ------------------------------------------------------------------------------
 
 # Dependencies
 node_modules/
 
-# Build outputs
+# Build / output
 dist/
 build/
 .next/
+out/
+
+# Next.js / Vercel / Turbo
+.vercel/
+.turbo/
+*.tsbuildinfo
 
 # Package managers / caches / logs
 npm-debug.log*
@@ -56,6 +62,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .npm/
+.npmrc
+.yarn/
+.pnp.*
 
 
 # ------------------------------------------------------------------------------
