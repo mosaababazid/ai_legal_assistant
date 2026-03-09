@@ -13,17 +13,17 @@ The AI Assistant performs all core analysis and summarization in **German** to e
 ## Tech Stack
 
 - **Backend**: Python, FastAPI, Uvicorn
-- **RAG**: LlamaIndex, Ollama (LLM + embeddings)
+- **RAG**: LlamaIndex, Ollama (LLM). Embedding and LLM models are configurable in `backend/app/core/config.py`—you can choose whatever models suit you; you're not required to use the same ones as this project.
 - **OCR**: EasyOCR, Pillow, NumPy
 - **PDF parsing**: PyMuPDF
 - **Translation**: Transformers + Torch (German -> Arabic)
-- **Frontend**: Static HTML/CSS/JavaScript (served separately)
+- **Frontend**: **Next.js 15** (App Router, React 19, Tailwind) in `web/` (frontend)
 
 ## Architecture (RAG Pipeline)
 
-- **Ingestion**: German law texts are scraped (optional) and stored as plain `.txt` files in `data/raw_laws/`.
-- **Embedding**: `scripts/build_index.py` creates a vector index from those documents using Ollama embeddings and stores it in `data/index_store/`.
-- **Retrieval**: At query time, LlamaIndex retrieves the most similar law passages from the persisted index in `data/index_store/`.
+- **Ingestion**: German law texts are scraped (optional) and stored as plain `.txt` files in `backend/data/raw_laws/`.
+- **Embedding**: `backend/scripts/build_index.py` creates a vector index and stores it in `backend/data/index_store/`.
+- **Retrieval**: At query time, LlamaIndex retrieves the most similar law passages from the persisted index.
 - **Generation**: An Ollama LLM generates a German response constrained by a strict prompt to only use retrieved passages.
 
 ## Mission (Social Impact)
@@ -40,86 +40,52 @@ By making German bureaucratic documents accessible and understandable, this tool
 
 ## Project Layout
 
-- `app/main.py`: FastAPI application entry point with CORS configuration
-- `app/api/`: API endpoints and route handlers
-  - `routes.py`: Main upload endpoint handling OCR/PDF extraction, summarization, and legal RAG queries
-- `app/services/`: Core business logic modules
-  - `ocr_service.py`: Image text extraction using EasyOCR
-  - `pdf_service.py`: PDF text extraction using PyMuPDF
-  - `summarization_service.py`: Text summarization using Ollama LLM
-  - `translation_service.py`: German-to-Arabic translation using Transformers
-  - `rag_service.py`: RAG-based legal query processing
-  - `validation_service.py`: Safety validation for legal responses (RDG-oriented)
-- `app/core/`: Application configuration and constants
-  - `config.py`: Centralized paths, RAG/LLM settings, and environment configuration
-- `app/utils/`: Utility modules
-  - `text_cleaner.py`: Text cleaning and sanitization utilities
-- `data/`: Data directories (generated artifacts, excluded from git)
-  - `raw_laws/`: Source German law documents (plain text files)
-  - `index_store/`: Persisted LlamaIndex vector database
-- `scripts/`: Utility scripts for data preparation
-  - `law_scraper.py`: Scrapes German law texts from gesetze-im-internet.de
-  - `build_index.py`: Builds the vector index from law documents
-- `frontend/`: Static UI files
-  - `index.html`: Main HTML interface
-  - `styles.css`: Styling and responsive design
-  - `script.js`: Frontend JavaScript logic
+The repo is split into two parts:
+
+- **`backend/`** — Python FastAPI API (OCR, PDF, summarization, translation, RAG)
+  - `app/main.py`: FastAPI entry point
+  - `app/api/`, `app/services/`, `app/core/`, `app/utils/`
+  - `scripts/`: `law_scraper.py`, `build_index.py`
+  - `data/`: `raw_laws/`, `index_store/`
+- **`web/`** — Next.js 15 frontend (App Router, React 19, Tailwind)
+
+See **`backend/README.md`** and **`web/README.md`** for per-project setup and run instructions.
 
 ## Setup & Run
 
 ### Prerequisites
 
-- Python 3.11+ recommended
-- Ollama installed and running locally
-  - Pull required models:
-    - `ollama pull llama3`
-    - `ollama pull nomic-embed-text`
+- Python 3.11+ (for backend)
+- Node.js 18+ (for frontend)
+- [Ollama](https://ollama.com) installed and running. Pull whatever LLM you prefer (e.g. `ollama pull llama3.2:3b`). Embedding model is set in `backend/app/core/config.py` (default: HuggingFace multilingual); you can change it to suit your setup.
 
 ### Backend
 
-1. Create and activate a virtual environment:
+From the **`backend/`** directory:
 
 ```bash
+cd backend
 python -m venv .venv
-# Windows (PowerShell)
-.\.venv\Scripts\Activate.ps1
-```
-
-2. Install dependencies:
-
-```bash
+.\.venv\Scripts\Activate.ps1   # Windows PowerShell
 pip install -r requirements.txt
-```
-
-3. (Optional) Scrape German law texts:
-
-```bash
-python scripts/law_scraper.py
-```
-
-4. Build the vector index:
-
-```bash
-python scripts/build_index.py
-```
-
-5. Run the API:
-
-```bash
+# Optional: python scripts/law_scraper.py && python scripts/build_index.py
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The API will be available at `http://127.0.0.1:8000/`.
+API: **http://127.0.0.1:8000/**
 
 ### Frontend
 
-Serve the static UI using a local HTTP server:
+From the **`web/`** directory:
 
 ```bash
-python -m http.server --directory frontend 5173
+cd web
+cp .env.local.example .env.local
+npm install
+npm run dev
 ```
 
-Then open `http://127.0.0.1:5173/` in your browser and upload a PDF or image file.
+Open **http://localhost:3000/** and ensure the backend is running at `http://127.0.0.1:8000`. To use another API URL, set `NEXT_PUBLIC_API_URL` in `web/.env.local`.
 
 ## Usage
 

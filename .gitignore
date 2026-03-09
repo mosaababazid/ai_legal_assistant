@@ -48,6 +48,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+.next/
 
 # Package managers / caches / logs
 npm-debug.log*
@@ -61,11 +62,14 @@ pnpm-debug.log*
 # RAG / Project-specific heavy artifacts
 # ------------------------------------------------------------------------------
 
-# Persisted vector index (rebuild via `scripts/build_index.py`)
+# Persisted vector index (rebuild via `backend/scripts/build_index.py`)
+backend/data/index_store/
 data/index_store/
 
-# Downloaded German law corpus (re-download via `scripts/law_scraper.py`)
+# Law files / German law corpus (re-download via `backend/scripts/law_scraper.py`)
+backend/data/raw_laws/
 data/raw_laws/
+**/raw_laws/
 
 # Uploaded/scanned documents (privacy-sensitive user data)
 scanned_docs/
@@ -75,7 +79,6 @@ scanned_docs/
 # IDE / Editor / OS cruft
 # ------------------------------------------------------------------------------
 
-# VS Code / JetBrains
 .vscode/
 .idea/
 
