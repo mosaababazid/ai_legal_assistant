@@ -12,7 +12,6 @@ Screenshots of the web interface:
 |--------------|---------------|
 | <img src="docs/screenshots/Dark-GE.png" width="360" height="245" alt="Dark, German" /> | <img src="docs/screenshots/Dark-AR.png" width="360" height="245" alt="Dark, Arabic" /> |
 | **Light, German** | **Light, Arabic** |
-|--------------|---------------|
 | <img src="docs/screenshots/White-GE.png" width="360" height="245" alt="Light, German" /> | <img src="docs/screenshots/White-AR.png" width="360" height="245" alt="Light, Arabic" /> |
 
 ## Core Logic & Language Processing
